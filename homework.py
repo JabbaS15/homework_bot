@@ -111,7 +111,7 @@ def main():
     if not check_tokens():
         sys.exit(1)
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    current_timestamp = 1642676085
+    current_timestamp = 1645859567
 
     while True:
         try:
