@@ -97,25 +97,23 @@ def parse_status(homework):
     """Извлекает из информации статус домашней работы."""
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
-    try:
+    if homework_status not in HOMEWORK_STATUSES:
+        raise KeyError(f'Ошибка ключа {homework_status}')
+    else:
         verdict = HOMEWORK_STATUSES[homework_status]
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-    except KeyError:
-        print(f'Ошибка ключа {homework_status}')
 
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    tokens = []
     for name in TOKENS:
-        token = TOKENS[name]
+        token = globals()[name]
+        # при испотльзовании TOKENS[name], автоматические тесты не проходят
         if not token:
-            tokens.append(token)
-            message = f'Отсутствие обязательных переменных окружения: {token}'
-            print(message)
-    if not tokens:
-        return True
-    return False
+            message = 'Отсутствие обязательных переменных окружения:'
+            logging.error(message)
+            return False
+    return True
 
 
 def main():
@@ -139,7 +137,7 @@ def main():
             message = f'Сбой в работе программы: {error}'
             logging.error(message)
         else:
-            print('Ошибок нет')
+            pass
         finally:
             time.sleep(RETRY_TIME)
 
