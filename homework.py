@@ -24,10 +24,6 @@ load_dotenv()
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-TOKENS = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
-          'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
-          'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
-          }
 RETRY_TIME = 1200
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
@@ -108,9 +104,12 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    for name in TOKENS:
-        token = globals()[name]
-        # при испотльзовании TOKENS[name], автоматические тесты не проходят
+    tokens = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
+              'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
+              'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
+              }
+    for name in tokens:
+        token = tokens[name]
         if not token:
             message = 'Отсутствие обязательных переменных окружения:'
             logging.error(message)
