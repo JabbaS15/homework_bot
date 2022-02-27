@@ -14,6 +14,8 @@ from json.decoder import JSONDecodeError
 
 
 class HttpStatusCodeError(Exception):
+    """Исключение вызывающие при status code != 200."""
+
     pass
 
 
@@ -70,7 +72,7 @@ def get_api_answer(current_timestamp):
             raise HttpStatusCodeError(message)
         return response.json()
     except JSONDecodeError:
-        message = f'Ошибка конвертации JSON:'
+        message = 'Ошибка конвертации JSON:'
         logging.error(message)
         raise JSONDecodeError
     except requests.exceptions.RequestException:
