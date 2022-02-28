@@ -123,7 +123,8 @@ def check_tokens():
         token = tokens_env[name]
         if not token:
             tokens.append(token)
-            error_message = f'Отсутствие обязательных переменных окружения: {token}'
+            error_message = (f'Отсутствие обязательных переменных окружения:'
+                             f' {token}')
             logging.critical(error_message)
         if not tokens:
             return True
