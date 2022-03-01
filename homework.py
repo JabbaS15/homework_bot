@@ -36,7 +36,7 @@ load_dotenv()
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-RETRY_TIME = 60
+RETRY_TIME = 1700
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 HOMEWORK_STATUSES = {
@@ -79,12 +79,12 @@ def get_api_answer(current_timestamp):
             logging.error(error_message)
             raise HttpStatusCodeError(error_message)
         return response.json()
-    except JSONDecodeError:
+    except JSONDecodeError as error:
         logging.error('Ошибка конвертации JSON:')
-        raise JSONDecodeError
-    except requests.exceptions.RequestException:
+        raise JSONDecodeError from error
+    except requests.exceptions.RequestException as error:
         logging.error('Endpoint is unavailable')
-        raise EndpointIsUnavailable('Endpoint is unavailable')
+        raise EndpointIsUnavailable('Endpoint is unavailable') from error
 
 
 def check_response(response):
@@ -95,7 +95,7 @@ def check_response(response):
     if 'homeworks' not in response:
         logger.error('В словаре не найден ключ homeworks')
         raise KeyError('В словаре не найден ключ homeworks')
-    homework = response.get('homeworks')
+    homework = response['homeworks']
     if not isinstance(homework, list):
         logger.error('Переменная "response" не является списком')
         raise TypeError('Переменная "response" не является списком')
@@ -119,16 +119,15 @@ def check_tokens():
                   'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
                   }
     tokens = []
-    for name in tokens_env:
-        token = tokens_env[name]
+    for token in tokens_env.values():
         if not token:
             tokens.append(token)
             error_message = (f'Отсутствие обязательных переменных окружения:'
                              f' {token}')
             logging.critical(error_message)
-        if not tokens:
-            return True
-        return False
+    if not tokens:
+        return True
+    return False
 
 
 def main():
@@ -137,8 +136,8 @@ def main():
         sys.exit(1)
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
-    error_book = []
-    status = []
+    last_message = ''
+    status = ''
     while True:
         try:
             response = get_api_answer(current_timestamp)
@@ -146,20 +145,22 @@ def main():
             if not homework:
                 error_message = 'list_homework_empty'
                 logging.error(error_message)
-                if error_message not in status:
+                if not status:
                     send_message(bot,
-                                 'Работа ожидает поступления на проверку ')
-                    status.append(error_message)
+                                 'Работа ожидает поступления на проверку')
+                    status = error_message
+                    last_message = ''
             else:
                 message = parse_status(homework[0])
                 send_message(bot, message)
-                status.clear()
+                last_message = ''
+                status = ''
         except Exception as error:
             error_message = f'Сбой в работе программы: {error}'
             logging.error(error_message)
-            if error_message not in error_book:
+            if not last_message:
                 send_message(bot, error_message)
-                error_book.append(error_message)
+                last_message = error_message
         time.sleep(RETRY_TIME)
 
 
