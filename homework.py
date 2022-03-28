@@ -136,8 +136,8 @@ def main():
         sys.exit(1)
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
-    last_message = ''
-    status = ''
+    last_message = None
+    status = None
     while True:
         try:
             response = get_api_answer(current_timestamp)
@@ -149,12 +149,12 @@ def main():
                     send_message(bot,
                                  'Работа ожидает поступления на проверку')
                     status = error_message
-                    last_message = ''
+                    last_message = None
             else:
                 message = parse_status(homework[0])
                 send_message(bot, message)
-                last_message = ''
-                status = ''
+                last_message = None
+                status = None
         except Exception as error:
             error_message = f'Сбой в работе программы: {error}'
             logging.error(error_message)
